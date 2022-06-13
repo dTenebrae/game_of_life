@@ -32,6 +32,14 @@ class Field:
             elif cell and (arnd < 2 or arnd > 3):
                 self.fieldmap[ix, iy] = 0
 
+    def cells_alive(self):
+        population = self.fieldmap.sum()
+        self.same.append(population)
+        return population
+
+    def field_change(self):
+        return len(set(self.same)) > 1
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Conway's Game of Life yet another implementation")
@@ -89,15 +97,19 @@ if __name__ == "__main__":
 
     # Вынес из условия цикла, чтобы не плодить ненужные расчеты
     overpopulated = FIELD_SIZE ** 2 * .39
-    current_sum = new_field.fieldmap.sum()
+    current_cells = new_field.cells_alive()
 
-    while current_sum and current_sum < overpopulated and len(set(new_field.same)) > 1:
+    while current_cells and current_cells < overpopulated and new_field.field_change():
         # spy - предназначен для отрисовки разреженных матриц, но сгодится и для нас
         plt.spy(new_field.fieldmap, markersize=2)
-        plt.title(f'{(current_sum * 100 / FIELD_SIZE ** 2):.2f}%')
+        plt.title(f'{(current_cells * 100 / FIELD_SIZE ** 2):.2f}%')
+        # рисуем то, что вытащили на spy
         plt.draw()
+        # пауза
         plt.pause(PAUSE)
+        # чистим холст
         plt.clf()
+        # считаем новое состояние
         new_field.new_turn()
-        current_sum = new_field.fieldmap.sum()
-        new_field.same.append(current_sum)
+        # считаем количество оставшихся в живых на поле
+        current_cells = new_field.cells_alive()
